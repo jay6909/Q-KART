@@ -42,7 +42,7 @@ const Header = ({ children, hasHiddenAuthButtons }) => {
               onClick={() => {
                 // history.push("/login");
                 localStorage.clear()
-                history.push('/')
+                window.location.reload();
               }}
             >
               LogOut
