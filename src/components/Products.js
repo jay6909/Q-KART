@@ -13,8 +13,14 @@ import { config } from "../App";
 import Footer from "./Footer";
 import Header from "./Header";
 import "./Products.css";
+import ProductCard from "./ProductCard";
 
 const Products = () => {
+  const [products,setProducts]=useState([]);
+
+  const performAPICall=async()=>{
+    
+  }
   return (
     <div>
       <Header></Header>
@@ -27,6 +33,15 @@ const Products = () => {
               to your door step
             </p>
           </Box>
+        </Grid>
+        <Grid container spacing={2} paddingX="12px" paddingY="8px">
+         {products.map(product=>( <Grid item xs={6} md={3} key={product._id}>
+            <ProductCard
+              product={{
+                product
+              }}
+            />
+          </Grid>))}
         </Grid>
       </Grid>
       <Footer />
