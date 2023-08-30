@@ -12,7 +12,6 @@ import React  from "react";
 import "./ProductCard.css";
 
 const ProductCard = ({ product, handleAddToCart }) => {
-
   return (
     <Card className="card">
       <CardMedia component="img" alt={product.name} image={product.image}/>
