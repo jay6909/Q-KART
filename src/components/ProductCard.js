@@ -8,10 +8,14 @@ import {
   Rating,
   Typography,
 } from "@mui/material";
-import React  from "react";
+import axios from "axios";
+import React, { useEffect, useState }  from "react";
+import { config } from "../App";
 import "./ProductCard.css";
 
+
 const ProductCard = ({ product, handleAddToCart }) => {
+      
   return (
     <Card className="card">
       <CardMedia component="img" alt={product.name} image={product.image}/>
