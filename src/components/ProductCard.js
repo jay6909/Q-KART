@@ -15,7 +15,7 @@ import "./ProductCard.css";
 
 
 const ProductCard = ({ product, handleAddToCart }) => {
-      
+      // console.log(product)
   return (
     <Card className="card">
       <CardMedia component="img" alt={product.name} image={product.image}/>
@@ -25,7 +25,10 @@ const ProductCard = ({ product, handleAddToCart }) => {
         <Rating value={product.rating} readOnly/>
       </CardContent>
       <CardActions>
-        <Button variant="contained" fullWidth startIcon={<AddShoppingCartOutlined/>}>
+        <Button variant="contained" fullWidth startIcon={<AddShoppingCartOutlined/>} onClick={()=>{
+          handleAddToCart({productId:product._id,qty:1});
+         
+        }}>
           Add to Cart
         </Button>
       </CardActions>

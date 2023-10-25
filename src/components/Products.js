@@ -15,7 +15,7 @@ import Header from "./Header";
 import "./Products.css";
 import ProductCard from "./ProductCard";
 import Cart from "./Cart";
-
+import { ConstructionOutlined } from "@mui/icons-material";
 const Products = () => {
   const { enqueueSnackbar } = useSnackbar();
 
@@ -28,31 +28,15 @@ const Products = () => {
 
   useEffect(() => {
     (async () => {
-      let data = await performAPICall();
-      setProducts(data);
-      let token=await getAuthToken()
-      setToken(token)
-       fetchCart(token)
+      let productData = await performAPICall();
+      setProducts(productData);
+      let token = await getAuthToken();
+      setToken(token);
+      let cart = await fetchCart(token);
+      setCartData(cart);
       setLoading(false);
     })();
   }, []);
-
-  // useEffect(() => {
-  //   // Load the token on mount
-  //   setToken(getAuthToken());
-  //   // Respond to the `storage` event
-  //   function storageEventHandler(event) {
-  //     if (event.key === "token") {
-  //       setToken(event.newValue);
-  //     }
-  //   }
-  //   // Hook up the event handler
-  //   window.addEventListener("storage", storageEventHandler);
-  //   return () => {
-  //     // Remove the handler when the component unmounts
-  //     window.removeEventListener("storage", storageEventHandler);
-  //   };
-  // }, []);
 
   //TODO CRIO_TASK_MODULE_PRODUCTS - Fetch products data and store it
   /**
@@ -68,7 +52,7 @@ const Products = () => {
   const performAPICall = async () => {
     try {
       const res = await axios.get(`${config.endpoint}/products`);
-      return res.data;
+      return await res.data;
     } catch (error) {
       return error.response;
     }
@@ -122,15 +106,21 @@ const Products = () => {
     setSearchText(event.target.value);
   };
 
-  const getAuthToken =async () => {
+  const getAuthToken = async () => {
     let tempToken = await localStorage.getItem("token");
-    return tempToken
+    return tempToken;
   };
 
+  /**
+   *
+   * @param {string} token
+   * 
+   * @returns { Array.<{ productId: String, qty: Number }> } cartData
+   *
+   */
   const fetchCart = async (token) => {
-    console.log(token)
     if (!token) {
-      console.log("no token found");
+      // console.log("no token found");
       return;
     }
 
@@ -143,7 +133,7 @@ const Products = () => {
         },
       });
 
-      setCartData(cartData.data);
+      return cartData.data;
     } catch (error) {
       if (error.response && error.response.status === 400) {
         enqueueSnackbar(error.response.message, { variant: "error" });
@@ -154,35 +144,100 @@ const Products = () => {
         );
       }
       console.log(error.response);
-      return null
-
-      // return error.response;
+      return null;
     }
-    // console.log(cartData.data)
   };
 
-  const handleAddToCart = async (id) => {
-    // console.log(id)
-    // let data = { productId: id, qty: 1 };
-    const isAdded = cartData.map((item) => item.productId === id);
-    if (!isAdded) {
-      const res = await axios.post(
-        `${config.endpoint}/cart`,
-        { productId: id, qty: 1 },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      setCartData(res.data);
+
+   /**
+   *
+   * @param {Array} token
+   * @param {string} productId
+   * 
+   * @returns { Boolean } 
+   *
+   */
+
+  const isItemInCart =  (items, productId) => {
+    for (const item of items) {
+      if (item.productId === productId) return true;
+    }
+    return false;
+  };
+
+
+   /**
+   *
+   * @param {string} token
+   * @param {Array} items
+   * @param {Array} products
+   * @param {string} productId
+   * @param {Number} qty
+   * @param {{preventDefault: boolean}} options
+   */
+  const handleAddToCart = async (
+   { token=localStorage.getItem("token"),
+    items=cartData,
+    products,
+    productId,
+    qty,
+    options = { preventDuplicate: false }}
+  ) => {
+    // console.log(productId,qty)
+    if (!token || !productId ) return;
+    if (options.preventDuplicate === true) {
+      try {
+        const res = await axios.post(
+          `${config.endpoint}/cart`,
+          { productId, qty },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        setCartData(res.data);
+        enqueueSnackbar("Item Updated", { variant: "success" });
+      } catch (error) {
+        console.log(error)
+
+        enqueueSnackbar(
+          "Could not fetch the cart details. Check that the backend is running, reachable and returns JSON",
+          { variant: "error" }
+        );
+      }
     } else {
-      enqueueSnackbar("item already in cart", { variant: "warn" });
+      let isInCart=isItemInCart(items, productId)
+      if (!isInCart) {
+        try {
+          const res = await axios.post(
+            `${config.endpoint}/cart`,
+            { productId, qty },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/json",
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          setCartData(res.data);
+          enqueueSnackbar("Item Added", { variant: "success" });
+        } catch (error) {
+          console.log(error)
+          enqueueSnackbar(
+            "Could not fetch the cart details. Check that the backend is running, reachable and returns JSON",
+            { variant: "error" }
+          );
+        }
+      } else {
+        enqueueSnackbar("Item already in cart. Use the cart sidebar to update quantity or remove item", { variant: "warning" });
+      }
     }
   };
-  const handleQuantity = () => {};
+
 
   return (
     <div>
@@ -249,12 +304,9 @@ const Products = () => {
                     xs={6}
                     md={3}
                     key={product._id}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleAddToCart(product._id);
-                    }}
+                    
                   >
-                    <ProductCard product={product} />
+                    <ProductCard product={product} handleAddToCart={handleAddToCart} />
                   </Grid>
                 ))}
               </Grid>
@@ -270,11 +322,17 @@ const Products = () => {
         {token ? (
           cartData.length ? (
             <Grid item md={4} style={{ backgroundColor: "#E9F5E1" }}>
-              <Cart products={products} items={cartData} />
+              <Cart
+                products={products}
+                items={cartData}
+                handleAddToCart={handleAddToCart}
+              />
             </Grid>
           ) : (
             <Grid item md={4} style={{ backgroundColor: "#E9F5E1" }}>
-              <Cart />
+              <Cart products={products}
+                items={cartData}
+                handleAddToCart={handleAddToCart}/>
             </Grid>
           )
         ) : (
