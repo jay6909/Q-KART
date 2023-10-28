@@ -16,6 +16,20 @@ import "./Products.css";
 import ProductCard from "./ProductCard";
 import Cart from "./Cart";
 import { ConstructionOutlined } from "@mui/icons-material";
+
+
+/**
+ * @typedef {Object} CartItem -  - Data on product added to cart
+ * 
+ * @property {string} name - The name or title of the product in cart
+ * @property {string} qty - The quantity of product added to cart
+ * @property {string} category - The category that the product belongs to
+ * @property {number} cost - The price to buy the product
+ * @property {number} rating - The aggregate rating of the product (integer out of five)
+ * @property {string} image - Contains URL for the product image
+ * @property {string} productId - Unique ID for the product
+ */
+
 const Products = () => {
   const { enqueueSnackbar } = useSnackbar();
 
@@ -48,6 +62,32 @@ const Products = () => {
    * API endpoint - "GET /products"
    *
    * Example for successfull response from backend:
+   * HTTP 200
+   * [
+   *      {
+   *          "name": "iPhone XR",
+   *          "category": "Phones",
+   *          "cost": 100,
+   *          "rating": 4,
+   *          "image": "https://i.imgur.com/lulqWzW.jpg",
+   *          "_id": "v4sLtEcMpzabRyfx"
+   *      },
+   *      {
+   *          "name": "Basketball",
+   *          "category": "Sports",
+   *          "cost": 100,
+   *          "rating": 5,
+   *          "image": "https://i.imgur.com/lulqWzW.jpg",
+   *          "_id": "upLK9JbQ4rMhTwt4"
+   *      }
+   * ]
+   *
+   * Example for failed response from backend:
+   * HTTP 500
+   * {
+   *      "success": false,
+   *      "message": "Something went wrong. Check the backend console for more details"
+   * }
    */
   const performAPICall = async () => {
     try {
@@ -279,7 +319,7 @@ const Products = () => {
         }}
       ></TextField>
       <Grid container sx={{ flexDirection: { xs: "column", md: "row" } }}>
-        <Grid item md={token ? 8 : 12}>
+        <Grid item md={token ? 9 : 12}>
           <Grid container>
             <Grid item className="product-grid">
               <Box className="hero">
@@ -321,7 +361,7 @@ const Products = () => {
 
         {token ? (
           cartData.length ? (
-            <Grid item md={4} style={{ backgroundColor: "#E9F5E1" }}>
+            <Grid item md={3} style={{ backgroundColor: "#E9F5E1" }}>
               <Cart
                 products={products}
                 items={cartData}
@@ -329,7 +369,7 @@ const Products = () => {
               />
             </Grid>
           ) : (
-            <Grid item md={4} style={{ backgroundColor: "#E9F5E1" }}>
+            <Grid item md={3} style={{ backgroundColor: "#E9F5E1" }}>
               <Cart products={products}
                 items={cartData}
                 handleAddToCart={handleAddToCart}/>
